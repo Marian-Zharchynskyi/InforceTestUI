@@ -1,65 +1,37 @@
 import axios from "axios";
-import { jwtDecode } from "jwt-decode";
+import jwtDecode from "jwt-decode";
 import { store } from "../../store/store";
 import { authUser } from "./../../store/state/reduserSlises/userSlice";
-import { logoutUser } from "../../store/state/actions/userActions";
 
-let isRefreshing = false;
-let failedQueue = [];
-
-const processQueue = (error, token = null) => {
-  failedQueue.forEach((prom) => {
-    if (token) {
-      prom.resolve(token);
-    } else {
-      prom.reject(error);
-    }
-  });
-  failedQueue = [];
+export const setAuthorizationToken = (token) => {
+  if (token) {
+    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  } else {
+    delete axios.defaults.headers.common["Authorization"];
+  }
 };
 
-export const refreshToken = async (originalRequest, setAuthorizationToken) => {
-  if (isRefreshing) {
-    return new Promise((resolve, reject) => {
-      failedQueue.push({ resolve, reject });
-    })
-      .then((token) => {
-        originalRequest.headers["Authorization"] = `Bearer ${token}`;
-        return axios(originalRequest);
-      })
-      .catch((err) => Promise.reject(err));
-  }
-
-  isRefreshing = true;
-
+export const loginUser = async (email, password) => {
   try {
-    const refreshToken = localStorage.getItem("refreshToken");
-    const accessToken = localStorage.getItem("accessToken");
+    const { data } = await axios.post("http://localhost:5205/account/login", {
+      email,
+      password,
+    });
 
-    const { data } = await axios.post(
-      "http://13.60.245.135:4312/account/refresh-token",
-      { refreshToken, accessToken }
-    );
-
-    if (data) {
+    if (data?.accessToken) {
       localStorage.setItem("accessToken", data.accessToken);
-      localStorage.setItem("refreshToken", data.refreshToken);
 
       setAuthorizationToken(data.accessToken);
 
       const user = jwtDecode(data.accessToken);
       store.dispatch(authUser(user));
 
-      processQueue(null, data.accessToken);
-      return data.accessToken;
+      return user;
     } else {
-      throw new Error("Failed to refresh tokens");
+      throw new Error("Failed to log in");
     }
-  } catch (refreshError) {
-    processQueue(refreshError, null);
-    await logoutUser()(store.dispatch);
-    return Promise.reject(refreshError);
-  } finally {
-    isRefreshing = false;
+  } catch (error) {
+    console.error("Login error:", error);
+    throw error;
   }
 };

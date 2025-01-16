@@ -2,8 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   currentUser: null,
-  isAuthenticated: false,
-  favoriteProducts: [],
+  isAuthenticated: false
 };
 
 export const userSlice = createSlice({
@@ -19,32 +18,13 @@ export const userSlice = createSlice({
       state.currentUser = null;
       state.isAuthenticated = false;
     },
-
-    getAllFavoriteProducts: (state, action) => {
-      state.favoriteProducts = action.payload;
-    },
-
-    addFavoriteProduct: (state, action) => {
-      const productId = action.payload;
-      if (!state.favoriteProducts.includes(productId)) {
-        state.favoriteProducts.push(productId);
-      }
-    },
-
-    removeFavoriteProduct: (state, action) => {
-      state.favoriteProducts = state.favoriteProducts.filter(
-        (product) => product.id !== action.payload
-      );
     },
   },
-});
+);
 
 export const {
   authUser,
-  logout,
-  addFavoriteProduct,
-  removeFavoriteProduct,
-  getAllFavoriteProducts
+  logout
 } = userSlice.actions;
 
 export default userSlice.reducer;

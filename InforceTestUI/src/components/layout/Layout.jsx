@@ -1,11 +1,10 @@
-import React, { memo } from "react";
+import React from "react";
 import { Outlet } from "react-router-dom";
 import Header from "./Header";
-import Footer from "./Footer";
 import "./layout.css";
 import AppSettingsHandler from "./AppSettingsHandler";
 
-const Layout = memo(() => {
+const Layout = () => {
   return (
     <>
       <AppSettingsHandler />
@@ -14,10 +13,9 @@ const Layout = memo(() => {
         <div className="containerLayout">
           <Outlet />
         </div>
-        <Footer />
       </div>
     </>
   );
-});
+};
 
 export default Layout;
